@@ -18,7 +18,7 @@
 
 ## 🤔 这是什么？
 基于 CI 的 ImageBuilder 工作流，用于自动化构建 ImmortalWrt 固件。
-> 1、支持自定义固件大小 默认1GB 不建议设置过大 推荐1G-2G 更大需求可通过自定义插件里的扩容插件自行扩容<br>
+> 1、支持自定义系统分区大小 默认1GB 不建议设置过大 推荐1G-2G 更大需求可通过自定义插件里的扩容插件自行扩容<br>
 > 2、支持可选预安装docker（可选）支持在UI上勾选是否集成商店 （24.10.6以下）<br>
 > 3、支持按需增加[第三方软件](https://github.com/wukongdaily/store/blob/master/README.md)  如何集成 https://github.com/wukongdaily/AutoBuildImmortalWrt/discussions/209 <br>
 > 4、点击这里查看👉🏻[全部支持的机型列表](https://github.com/wukongdaily/AutoBuildImmortalWrt/blob/master/SUPPORT.md) 👈🏻<br>
@@ -26,6 +26,11 @@
 > 6、支持设置管理地址的ip 比如192.168.100.1 这里强调 这项功能仅针对多网口机型 单网口的逻辑还是自动获取ip模式（dhcp）无固定ip<br>
 > 7、对于[插件追新的用户 建议前往run项目 下载run后 ](https://github.com/wukongdaily/RunFilesBuilder/discussions/41)用命令sh xx.run 覆盖安装 <br>
 > 8、支持24.10.x 、25.12.x 等版本 （包括x86-64-ISO、x86-64、rockchip、全志sunxi、无线路由器）
+
+## x86-64 定制说明
+- x86-64 系列工作流已调整为构建 `ext4-combined-efi.img.gz` 镜像，不再构建 `squashfs-combined-efi.img.gz`。
+- x86-64 系列工作流中的“系统分区大小”对应 ImageBuilder 的 `ROOTFS_PARTSIZE`，用于设置 ext4 rootfs 分区大小，默认 1024MB。
+- x86-64 系列固件已内置 `kmod-atlantic` 驱动，增加 Marvell/Aquantia AQtion 网卡支持。网卡列表：AQC100、AQC107、AQC107S、AQC108、AQC109、AQC111、AQC112、AQC113、AQC113C、AQC113CS。
 
 ## [基本用法步骤](https://github.com/wukongdaily/AutoBuildImmortalWrt/wiki) 👈🏻
 1、fork本项目<br>
