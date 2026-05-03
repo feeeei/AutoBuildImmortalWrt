@@ -21,8 +21,8 @@ on:
           - 24.10.4
           - 24.10.5
           - 24.10.6
-      profile:
-        description: '请输入要编译固件大小 单位(MB)'
+      rootfs_partsize:
+        description: '请输入系统分区大小，单位 MB（ext4 rootfs）'
         required: true
         default: '1024'
       include_docker:
@@ -84,13 +84,13 @@ jobs:
 
       - name: ✅ 正在构建ImmortalWrt固件
         run: |
-          profiles="${{ github.event.inputs.profile }}"
+          rootfs_partsizes="${{ github.event.inputs.rootfs_partsize }}"
           include_docker="${{ github.event.inputs.include_docker }}"
           luci_version="${{ github.event.inputs.luci_version }}"
-          IFS=',' read -r -a profile_array <<< "$profiles"
+          IFS=',' read -r -a rootfs_partsize_array <<< "$rootfs_partsizes"
           
-          for profile in "${profile_array[@]}"; do
-            echo "Building for profile: $profile"
+          for rootfs_partsize in "${rootfs_partsize_array[@]}"; do
+            echo "Building ext4 image with ROOTFS_PARTSIZE: $rootfs_partsize MB"
             docker run --rm -i \
               --user root \
               -v "${{ github.workspace }}/bin:/home/build/immortalwrt/bin" \
@@ -98,7 +98,7 @@ jobs:
               -v "${{ github.workspace }}/x86-64/imm.config:/home/build/immortalwrt/.config" \
               -v "${{ github.workspace }}/shell:/home/build/immortalwrt/shell" \
               -v "${{ github.workspace }}/x86-64/build24.sh:/home/build/immortalwrt/build.sh" \
-              -e PROFILE=$profile \
+              -e ROOTFS_PARTSIZE=$rootfs_partsize \
               -e INCLUDE_DOCKER=$include_docker \
               -e ENABLE_PPPOE=${{ inputs.enable_pppoe }} \
               -e PPPOE_ACCOUNT=${{ inputs.pppoe_account }} \
@@ -108,7 +108,7 @@ jobs:
 
       - name: ✅ 复制固件到根目录
         run: |
-          cp ${{ github.workspace }}/bin/targets/x86/64/*squashfs-combined-efi.img.gz ${{ github.workspace }}
+          cp ${{ github.workspace }}/bin/targets/x86/64/*ext4-combined-efi.img.gz ${{ github.workspace }}
 
       - name: ✅ 上传固件到 artifact (for ISO generation)
         uses: actions/upload-artifact@v4
@@ -139,7 +139,7 @@ jobs:
 
       - name: ✅ 制作 ISO
         run: |
-          firmware_file=$(ls *squashfs-combined-efi.img.gz)
+          firmware_file=$(ls *ext4-combined-efi.img.gz)
           cd img-installer
           bash autobuild/autobuild.sh "../$firmware_file"
 

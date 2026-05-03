@@ -7,8 +7,8 @@ on:
         description: "请设置路由器的管理地址(仅对多网口路由器有效) 格式:192.168.x.1 或 10.x.x.1"
         required: true
         default: "192.168.100.1"
-      profile:
-        description: '请输入要编译固件大小 单位(MB)'
+      rootfs_partsize:
+        description: '请输入系统分区大小，单位 MB（ext4 rootfs）'
         required: true
         default: '1024'
       enable_store:
@@ -79,13 +79,13 @@ jobs:
 
       - name: Build ImmortalWrt-x86-64-efi
         run: |
-          profiles="${{ github.event.inputs.profile }}"
+          rootfs_partsizes="${{ github.event.inputs.rootfs_partsize }}"
           include_docker="${{ github.event.inputs.include_docker }}"
           
-          IFS=',' read -r -a profile_array <<< "$profiles"
+          IFS=',' read -r -a rootfs_partsize_array <<< "$rootfs_partsizes"
           
-          for profile in "${profile_array[@]}"; do
-            echo "Building for profile: $profile"
+          for rootfs_partsize in "${rootfs_partsize_array[@]}"; do
+            echo "Building ext4 image with ROOTFS_PARTSIZE: $rootfs_partsize MB"
             
             docker run --rm -i \
               --user root \
@@ -95,7 +95,7 @@ jobs:
               -v "${{ github.workspace }}/x86-64/imm.config:/home/build/immortalwrt/.config" \
               -v "${{ github.workspace }}/shell:/home/build/immortalwrt/shell" \
               -v "${{ github.workspace }}/x86-64/build23.sh:/home/build/immortalwrt/build.sh" \
-              -e PROFILE=$profile \
+              -e ROOTFS_PARTSIZE=$rootfs_partsize \
               -e INCLUDE_DOCKER=$include_docker \
               -e ENABLE_PPPOE=${{ inputs.enable_pppoe }} \
               -e PPPOE_ACCOUNT=${{ inputs.pppoe_account }} \
@@ -130,8 +130,7 @@ jobs:
           tag_name: Autobuild-x86-64
           body_path: ${{ github.workspace }}/router-info.md
           files: |
-            ${{ github.workspace }}/bin/targets/x86/64/immortalwrt-23.05.4-x86-64-generic-squashfs-combined-efi.img.gz
+            ${{ github.workspace }}/bin/targets/x86/64/*ext4-combined-efi.img.gz
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
